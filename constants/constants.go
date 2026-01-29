@@ -4,6 +4,7 @@ import (
 	"os"
 	"github.com/joho/godotenv"
 	"log"
+	"slices"
 )
 
 const (
@@ -21,6 +22,11 @@ type Config struct{
 
 var AppConfig *Config
 
+var AcceptedTokens []string
+var ParanthesisTokens []string
+var OperatorTokens []string
+var AttributesAndConstantTokens []string
+
 func Load(){
 	err := godotenv.Load()
 	if err!=nil {
@@ -35,4 +41,9 @@ func Load(){
 		SSLMode: os.Getenv("PGSSLMODE"),
 		DBPort: os.Getenv("PGPORT"),
 	}
+
+	ParanthesisTokens = []string{"(", ")"}
+	OperatorTokens = []string{"+", "/", "-", "*"}
+	AttributesAndConstantTokens = []string{"Ident", "Int", "Float", "String"}
+	AcceptedTokens = slices.Concat(ParanthesisTokens, OperatorTokens, AttributesAndConstantTokens)
 }

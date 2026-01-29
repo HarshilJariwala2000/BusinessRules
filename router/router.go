@@ -2,7 +2,7 @@ package router
 
 import (
 	// "calculationengine/service"
-	"calculationengine/service"
+	"calculationengine/service/attribute"
 	storage "calculationengine/store"
 	// "fmt"
 	"log"
@@ -33,7 +33,7 @@ func Api(){
 			return
 		}
 		// fmt.Println(request)
-		result, err := service.CreateAttribute(request)
+		result, err := attribute.CreateAttribute(request)
 		if err !=nil{
 			c.JSON(500, gin.H{"error": err.Error()})
 			return

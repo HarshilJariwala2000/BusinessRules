@@ -1,4 +1,4 @@
-package service
+package attribute
 
 import (
 	"calculationengine/store"
