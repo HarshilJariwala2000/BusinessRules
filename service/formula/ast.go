@@ -61,3 +61,19 @@ func (il *IntegerLiteral) TokenLiteral() string {
 	return il.Token.TokenValue
 }
 
+type PrefixExpression struct {
+	Token Token
+	Operator string
+	Right Expression
+}
+
+func (pe *PrefixExpression) expressionNode() {}
+
+func (pe *PrefixExpression) String() string { return "" }
+
+func (pe *PrefixExpression) TokenLiteral() string {
+	return pe.Token.TokenValue
+}
+
+
+
