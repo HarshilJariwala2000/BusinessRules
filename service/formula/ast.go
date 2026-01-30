@@ -1,7 +1,6 @@
 package interpreter
 
-import (
-)
+import "bytes"
 
 type Node interface {
 	TokenLiteral() string
@@ -69,7 +68,16 @@ type PrefixExpression struct {
 
 func (pe *PrefixExpression) expressionNode() {}
 
-func (pe *PrefixExpression) String() string { return "" }
+func (pe *PrefixExpression) String() string { 
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String() 
+}
 
 func (pe *PrefixExpression) TokenLiteral() string {
 	return pe.Token.TokenValue

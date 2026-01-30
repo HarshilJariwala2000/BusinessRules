@@ -42,6 +42,8 @@ func NewParser(l *Lexer) *Parser{
 	p := &Parser{l:l, errors: []string{}}
 	p.prefixParseFns = make(map[TokenType]prefixParseFn)
 	p.registerPrefixFunction(IDENT, p.parseIdentifier)
+	p.registerPrefixFunction(INT, p.parseIntegerLiteral)
+	p.registerPrefixFunction(MINUS, p.parsePrefixExpression)
 	p.nextToken()
 	p.nextToken()
 
@@ -124,6 +126,10 @@ func (p *Parser) expectPeek(t TokenType) bool {
 		p.peekError(t)
 		return false
 	}
+}
+
+func (p *Parser) parsePrefixExpression() Expression {
+
 }
 
 type (
