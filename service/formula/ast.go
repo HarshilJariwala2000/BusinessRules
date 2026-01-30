@@ -1,5 +1,8 @@
 package interpreter
 
+import (
+)
+
 type Node interface {
 	TokenLiteral() string
 	String() string
@@ -15,11 +18,6 @@ type Expression interface {
 	expressionNode()
 }
 
-type Identifier struct {
-	Token Token
-	Value string
-}
-
 type Program struct {
 	Statements []Statement
 }
@@ -29,15 +27,37 @@ type ExpressionStatement struct {
 	Expression Expression
 }
 
+func (es *ExpressionStatement) String() string { return "" }
+
 func (es *ExpressionStatement) statementNode() {}
 
 func (es *ExpressionStatement) TokenLiteral() string {
 	return es.Token.TokenValue
 }
 
+type Identifier struct {
+	Token Token
+	Value string
+}
+
 func (i *Identifier) expressionNode() {}
+
+func (i *Identifier) String() string { return "" }
 
 func (i *Identifier) TokenLiteral() string {
 	return i.Token.TokenValue
+}
+
+type IntegerLiteral struct {
+	Token Token
+	Value int
+}
+
+func (il *IntegerLiteral) expressionNode() {}
+
+func (il *IntegerLiteral) String() string { return "" }
+
+func (il *IntegerLiteral) TokenLiteral() string {
+	return il.Token.TokenValue
 }
 
