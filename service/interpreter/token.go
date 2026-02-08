@@ -12,32 +12,32 @@ type Token struct{
 }
 
 const (
-	ILLEGAL = "ILLEGAL"
-	EOF = "EOF"
+	ILLEGAL TokenType = "ILLEGAL"
+	EOF TokenType = "EOF"
 	// Identifiers + literals
-	IDENT = "Ident" // add, foobar, x, y, ...
+	IDENT TokenType = "Ident" // add, foobar, x, y, ...
 	
-	INT = "Int" // 1343456
-	FLOAT = "Float"
-	STRING = "String"
+	INT TokenType = "Int" // 1343456
+	FLOAT TokenType = "Float"
+	STRING TokenType = "String"
 	// Operators
-	ASSIGN = "="
-	PLUS = "+"
-	MINUS = "-"
-	ASTERISK = "*"
-	SLASH = "/"
+	PLUS TokenType= "+"
+	MINUS TokenType= "-"
+	ASTERISK TokenType= "*"
+	SLASH TokenType= "/"
 
-	IF = "IF"
+	IF TokenType= "IF"
 
-	EQUALS = "="
+	EQ TokenType= "="
+	NOT_EQ TokenType = "<>"
 
 	// Delimiters
-	COMMA= ","
-	LPAREN = "("
-	RPAREN = ")"
+	COMMA TokenType= ","
+	LPAREN TokenType= "("
+	RPAREN TokenType= ")"
 
-	LT = "<"
-	GT = ">"
+	LT TokenType= "<"
+	GT TokenType= ">"
 )
 
 // ParanthesisTokens = []string{"(", ")"}
@@ -60,7 +60,6 @@ const (
 // 			TokenValue: s.TokenText(),
 // 			TokenType: scanner.TokenString(tok),
 // 		}
-// 		fmt.Println(scanner.TokenString(tok))
 // 		tokens = append(tokens, value)
 // 	}
 // 	return tokens
