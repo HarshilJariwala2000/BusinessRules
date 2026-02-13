@@ -3,11 +3,12 @@ package main
 import (
 	"calculationengine/constants"
 	// "calculationengine/router"
-	"calculationengine/service/interpreter"
+	"calculationengine/service/evaluator"
+	"calculationengine/service/parser"
 	// "calculationengine/store"
+	// "encoding/json"
 	"fmt"
-	    "encoding/json"
-
+	"time"
 	// "strings"
 	// "text/scanner"
 )
@@ -21,18 +22,17 @@ func main(){
 	// for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
 	// 	fmt.Println(scanner.TokenString(tok))
 	// }
+	start := time.Now()
+	lexer := parser.NewLexer("100 + 102 + 103")
+	nparser := parser.NewParser(lexer)
+	program := nparser.ParseProgram()
+	eval := evaluator.Eval(program.Statements[0])
+	fmt.Println(eval)
 
-	lexer := interpreter.NewLexer("IF(map = mrp * tax / 100, IF(A = B, C, D), b)")
-	parser := interpreter.NewParser(lexer)
-	program := parser.ParseProgram()
-	fmt.Println(program)
+	allTime := time.Now()
+	fmt.Printf("Total took: %s\n", allTime.Sub(start))
+	// fmt.Println(program)
 	// fmt.Printf("%+v\n", program)
-	b, err := json.MarshalIndent(program, "", "  ")
-    if err != nil {
-        fmt.Printf("Error: %s", err)
-        return;
-    }
-    fmt.Println(string(b))
 
 	// actual := program.String()
 

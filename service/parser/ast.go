@@ -1,4 +1,4 @@
-package interpreter
+package parser
 
 import (
 	"bytes"
@@ -79,6 +79,21 @@ func (il *IntegerLiteral) String() string {
 }
 
 func (il *IntegerLiteral) TokenLiteral() string {
+	return il.Token.TokenValue
+}
+
+type Boolean struct {
+	Token Token
+	Value bool
+}
+
+func (il *Boolean) expressionNode() {}
+
+func (il *Boolean) String() string {
+	return il.Token.TokenValue
+}
+
+func (il *Boolean) TokenLiteral() string {
 	return il.Token.TokenValue
 }
 
