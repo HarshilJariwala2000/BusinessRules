@@ -20,6 +20,7 @@ const (
 	INT TokenType = "Int" // 1343456
 	FLOAT TokenType = "Float"
 	STRING TokenType = "String"
+	BOOL TokenType = "Boolean"
 	// Operators
 	PLUS TokenType= "+"
 	MINUS TokenType= "-"

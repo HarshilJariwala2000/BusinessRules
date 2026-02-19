@@ -1,7 +1,7 @@
 package main
 
 import (
-	"calculationengine/constants"
+	// "calculationengine/constants"
 	// "calculationengine/router"
 	"calculationengine/service/evaluator"
 	"calculationengine/service/parser"
@@ -14,7 +14,7 @@ import (
 )
 
 func main(){
-	constants.Load()
+	// constants.Load()
 	// storage.Connect()
 	// storage.AutoMigrate()
 	// var s scanner.Scanner
@@ -23,7 +23,8 @@ func main(){
 	// 	fmt.Println(scanner.TokenString(tok))
 	// }
 	start := time.Now()
-	lexer := parser.NewLexer("100 + 102 + 103")
+	// lexer := parser.NewLexer("100 + 102 + 103 * 9999 + 23987 - 876876 / 3876786")
+	lexer := parser.NewLexer("2 - TRUE")
 	nparser := parser.NewParser(lexer)
 	program := nparser.ParseProgram()
 	eval := evaluator.Eval(program.Statements[0])

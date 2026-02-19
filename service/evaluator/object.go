@@ -5,6 +5,7 @@ import "fmt"
 const (
 	INTEGER_OBJ = "INTEGER"
 	BOOLEAN_OBJ = "BOOLEAN"
+	ERROR_OBJ = "ERROR"
 )
 
 type ObjectType string
@@ -36,4 +37,16 @@ func (b *Boolean) Type() ObjectType {
 
 func (b *Boolean) Inspect() string {
 	return fmt.Sprintf("%t", b.Value)
+}
+
+type Error struct {
+	Message string
+}
+
+func (e *Error) Type() ObjectType {
+	return ERROR_OBJ
+}
+
+func (e *Error) Inspect() string {
+	return "Error: " + e.Message
 }

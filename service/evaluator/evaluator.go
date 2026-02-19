@@ -1,6 +1,9 @@
 package evaluator
 
-import "calculationengine/service/parser"
+import (
+	"calculationengine/service/parser"
+	"fmt"
+)
 
 var (
 	TRUE = &Boolean{Value:true}
@@ -8,6 +11,8 @@ var (
 )
 
 func Eval(node parser.Node) Object {
+	// fmt.Println()
+	// fmt.Printf("The type is: %T\n", node)
 	switch node := node.(type) {
 	// case *parser.Program:
 	// 	return evalStatements(parser.Statement)
@@ -22,15 +27,21 @@ func Eval(node parser.Node) Object {
 		case *parser.IntegerLiteral:
 			return &Integer{Value:int64(node.Value)}
 
+		case *parser.Identifier:
+
+
 		case *parser.Boolean:
 			return nativeBoolToBooleanObject(node.Value)
 
 		case *parser.InfixExpression:
 			left := Eval(node.Left)
 			right := Eval(node.Right)
-			return evalInfixExpression(node.Operator, left, right)
+			valuess:=evalInfixExpression(node.Operator, left, right)
+			fmt.Println(valuess)
+			return valuess//evalInfixExpression(node.Operator, left, right)
 
 		case *parser.IfExpression:
+			return evalIfExpression(node)
 			
 		
 	}
@@ -76,9 +87,11 @@ func evalInfixExpression(operator string, left Object, right Object) Object{
 		case operator=="=":
 			return nativeBoolToBooleanObject(left == right)
 		case operator=="<>":
-			return nativeBoolToBooleanObject(left !=right)
+			return nativeBoolToBooleanObject(left != right)
+		case left.Type() != right.Type():
+			return newError("Type mismatch: %s %s %s", left.Type(), operator, right.Type())
 		default:
-			return nil
+			return newError("Unknown Operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -104,7 +117,7 @@ func evalIntegerInfixExpression(operator string, left Object, right Object) Obje
 		case "=":
 			return nativeBoolToBooleanObject(leftVal == rightVal)
 		default:
-			return nil
+			return newError("Unknown Operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 
 }
@@ -121,7 +134,7 @@ func evalPrefixExpression(operator string, right Object) Object {
 	case "-":
 		return evalMinusPrefixOperatorExpression(right)
 	default:
-		return nil
+		return newError("Unknown Operator: %s%s", operator, right.Type())
 	
 
 	}
@@ -133,6 +146,10 @@ func evalMinusPrefixOperatorExpression(right Object) Object{
 	}
 	value := right.(*Integer).Value
 	return &Integer{Value:-value}
+}
+
+func newError(format string, a ...interface{}) *Error {
+	return &Error{Message:fmt.Sprintf(format, a...)}
 }
 
 // func evalStatements(stmts []parser.Statement) Object {

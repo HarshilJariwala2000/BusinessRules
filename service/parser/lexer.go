@@ -52,6 +52,10 @@ func (l *Lexer) NextToken() Token {
 			switch l.ch {
 				case "IF":
 					tok = newToken(IF, l.ch)
+				case "TRUE":
+					tok = newToken(BOOL, l.ch)
+				case "FALSE":
+					tok = newToken(BOOL, l.ch)
 				default:
 					tok = newToken(IDENT, l.ch)
 			}

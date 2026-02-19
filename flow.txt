@@ -1,0 +1,15 @@
+User Enters Target Attribute and Formula
+Validations:
+1.) All the identifiers in the formula should be the attribute that is made in our system
+2.) There should be no syntax error in the formula
+3.) Operations should not be on differnet data types of ientifiers i.e. 1 + TRUE - "hELO" is invalid
+4.) Check for Cycles
+Fetch Dependent and Traget From FormulaDependency Table (Except the traget Attribute in Request).
+Merge with Fromula in Request
+Create a Graph in Memory
+Detect Cycles
+
+Only if all these validations pass, we will save the formula in db
+
+
+

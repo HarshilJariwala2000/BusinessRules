@@ -14,13 +14,23 @@ type Attribute struct{
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
 }
 
-type DAGAdjacencyList struct{
-	CategoryID uint `gorm:"primaryKey; not null; default:0"`
+type Formulas struct{
+	ID uint `gorm:"primaryKey; autoIncrement"`
+	CategoryID uint `gorm:"not null"`
+	Expression string
 	Catgeory Category `gorm:"foreignKey:CategoryID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
-	ProductID uint `gorm:"primaryKey; not null; default:0"`
-	Product Product `gorm:"foreignKey:ProductID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
-	AttributeID uint `gorm:"not null"`
-	Attribute Attribute `gorm:"foreignKey:AttributeID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	TargetAttributeID uint `gorm:"not null"`
+	Attribute Attribute `gorm:"foreignKey:TargetAttributeID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
+	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
+}
+
+type FormulaDependencies struct{
+	FormulaID uint `gorm:"primaryKey; not null;"`
+	Formula Formulas `gorm:"foreignKey:FormulaID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	DependentAttributeID uint `gorm:"not null"`
+	Attribute Attribute `gorm:"foreignKey:DependentAttributeID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
@@ -49,7 +59,7 @@ type ApiResponse struct{
 
 
 func AutoMigrate(){
-	DB.AutoMigrate(&Attribute{}, &Category{}, &Product{}, &DAGAdjacencyList{})
+	DB.AutoMigrate(&Attribute{}, &Category{}, &Product{}, &FormulaDependencies{}, &Formulas{})
 	// DB.AutoMigrate(&Product{})
 
 }
