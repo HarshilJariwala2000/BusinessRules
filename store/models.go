@@ -44,6 +44,16 @@ type Category struct{
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
 }
 
+type CategoryAttributeAssignment struct {
+	CategoryID uint `gorm:"primaryKey"`
+	Category Category `gorm:"foreignKey:CategoryID; references:ID; constraint:OnUpdate:CASCADE, OnDelete:CASCADE"`
+	AttributeID uint `gorm:"primaryKey"`
+	Attribute Attribute `gorm:"foreignKey:AttributeID; references:ID; constraint:OnUpdate:CASCADE, OnDelete:CASCADE"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
+	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
+}
+
 type Product struct{
 	ID uint `grom:"primaryKey; autoIncrement" json:",omitempty"`
 	Data JSONB `gorm:"type:jsonb; default:'{}'"`

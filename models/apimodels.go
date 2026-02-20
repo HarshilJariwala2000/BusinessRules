@@ -1,4 +1,4 @@
-package router
+package models
 
 type CreateAttributeRequest struct{
 	Name string `validate:"required"`
@@ -6,7 +6,7 @@ type CreateAttributeRequest struct{
 }
 
 type CreateFormulaRequest struct{
-	TargetAttribute string
-	FormulaType string
+	CategoryID int
+	TargetAttribute int
 	Formula string `validate:"oneof=calculation"`
 }

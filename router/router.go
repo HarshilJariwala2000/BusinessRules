@@ -2,8 +2,9 @@ package router
 
 import (
 	// "calculationengine/service"
+	"calculationengine/models"
 	"calculationengine/service/attribute"
-	storage "calculationengine/store"
+	// storage "calculationengine/store"
 	// "fmt"
 	"log"
 
@@ -25,14 +26,13 @@ func Api(){
 	Router = gin.Default()
 
 	Router.POST("/v1/attribute/create", func(c *gin.Context){
-		request := parseRequest[storage.Attribute](c)
+		request := parseRequest[models.CreateAttributeRequest](c)
 		validate := validator.New()
 		validationErr := validate.Struct(request)
 		if validationErr != nil {
 			c.JSON(400, gin.H{"error": validationErr.Error()})
 			return
 		}
-		// fmt.Println(request)
 		result, err := attribute.CreateAttribute(request)
 		if err !=nil{
 			c.JSON(500, gin.H{"error": err.Error()})
