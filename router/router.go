@@ -4,6 +4,9 @@ import (
 	// "calculationengine/service"
 	"calculationengine/models"
 	"calculationengine/service/attribute"
+	"calculationengine/service/formulas"
+	"fmt"
+
 	// storage "calculationengine/store"
 	// "fmt"
 	"log"
@@ -17,6 +20,7 @@ var Router *gin.Engine
 func parseRequest[T any](c *gin.Context) T {
 	var request T
 	if err := c.BindJSON(&request); err != nil {
+		fmt.Println(err)
         log.Fatalln("Failed to Parse Request")
     }
 	return request
@@ -33,7 +37,25 @@ func Api(){
 			c.JSON(400, gin.H{"error": validationErr.Error()})
 			return
 		}
-		result, err := attribute.CreateAttribute(request)
+		ctx := c.Request.Context()
+		result, err := attribute.CreateAttribute(ctx, request)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/formula/create", func(c *gin.Context){
+		request := parseRequest[models.CreateFormulaRequest](c)
+		validate := validator.New()
+		validationErr := validate.Struct(request)
+		if validationErr != nil {
+			c.JSON(400, gin.H{"error": validationErr.Error()})
+			return
+		}
+		ctx := c.Request.Context()
+		result, err := formulas.CreateFormula(ctx, request)
 		if err !=nil{
 			c.JSON(500, gin.H{"error": err.Error()})
 			return

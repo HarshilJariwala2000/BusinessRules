@@ -15,22 +15,23 @@ type Attribute struct{
 }
 
 type Formulas struct{
-	ID uint `gorm:"primaryKey; autoIncrement"`
-	CategoryID uint `gorm:"not null"`
+	CategoryID uint `gorm:"primaryKey"`
+	Category CategoryAttributeAssignment `gorm:"foreignKey:CategoryID; references:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	TargetAttributeID uint `gorm:"primaryKey"`
+	Attribute CategoryAttributeAssignment `gorm:"foreignKey:TargetAttributeID; references:AttributeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Expression string
-	Catgeory Category `gorm:"foreignKey:CategoryID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
-	TargetAttributeID uint `gorm:"not null"`
-	Attribute Attribute `gorm:"foreignKey:TargetAttributeID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
 }
 
 type FormulaDependencies struct{
-	FormulaID uint `gorm:"primaryKey; not null;"`
-	Formula Formulas `gorm:"foreignKey:FormulaID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
-	DependentAttributeID uint `gorm:"not null"`
-	Attribute Attribute `gorm:"foreignKey:DependentAttributeID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	CategoryID uint `gorm:"primaryKey"`
+	Category Formulas `gorm:"foreignKey:CategoryID; references:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	TargetAttributeID uint `gorm:"primaryKey"`
+	TargetAttribute Formulas `gorm:"foreignKey:TargetAttributeID; references:TargetAttributeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	DependentAttributeID uint `gorm:"primaryKey"`
+	DependentAttribute Attribute `gorm:"foreignKey:DependentAttributeID; references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
@@ -42,6 +43,7 @@ type Category struct{
 	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
+	Attributes []Attribute `gorm:"many2many:category_attribute_assignments;"`
 }
 
 type CategoryAttributeAssignment struct {
@@ -49,6 +51,7 @@ type CategoryAttributeAssignment struct {
 	Category Category `gorm:"foreignKey:CategoryID; references:ID; constraint:OnUpdate:CASCADE, OnDelete:CASCADE"`
 	AttributeID uint `gorm:"primaryKey"`
 	Attribute Attribute `gorm:"foreignKey:AttributeID; references:ID; constraint:OnUpdate:CASCADE, OnDelete:CASCADE"`
+	TopologicalSortOrder uint
 	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
@@ -69,8 +72,7 @@ type ApiResponse struct{
 
 
 func AutoMigrate(){
-	DB.AutoMigrate(&Attribute{}, &Category{}, &Product{}, &FormulaDependencies{}, &Formulas{})
-	// DB.AutoMigrate(&Product{})
-
+	// DB.AutoMigrate(&Attribute{}, &Category{}, &Formulas{}, &CategoryAttributeAssignment{}, &Product{}, &FormulaDependencies{})
+	DB.AutoMigrate(&CategoryAttributeAssignment{})
 }
 

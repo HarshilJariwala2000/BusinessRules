@@ -7,9 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateAttribute(request models.CreateAttributeRequest) (*storage.ApiResponse, error) {
+func CreateAttribute(ctx context.Context, request models.CreateAttributeRequest) (*storage.ApiResponse, error) {
 	result := gorm.WithResult()
-	ctx := context.Background()
 
 	createObject := &storage.Attribute{Name:request.Name, DataType: request.DataType}
 

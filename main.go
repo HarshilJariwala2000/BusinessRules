@@ -1,45 +1,43 @@
 package main
 
 import (
-	// "calculationengine/constants"
-	// "calculationengine/router"
-	"calculationengine/service/evaluator"
-	"calculationengine/service/parser"
-	// "calculationengine/store"
+	"calculationengine/constants"
+	"calculationengine/router"
+	// "calculationengine/service/evaluator"
+	// "calculationengine/service/parser"
+	"calculationengine/store"
 	// "encoding/json"
-	"fmt"
-	"time"
+	// "fmt"
+	// "time"
 	// "strings"
 	// "text/scanner"
 )
 
 func main(){
-	// constants.Load()
-	// storage.Connect()
-	// storage.AutoMigrate()
+	constants.Load()
+	storage.Connect()
+	storage.AutoMigrate()
+
+	//^Manual Test golang scanner only
 	// var s scanner.Scanner
 	// s.Init(strings.NewReader(`IF map, mrp, ^ <> "Hello"`))
 	// for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
 	// 	fmt.Println(scanner.TokenString(tok))
 	// }
-	start := time.Now()
-	// lexer := parser.NewLexer("100 + 102 + 103 * 9999 + 23987 - 876876 / 3876786")
-	lexer := parser.NewLexer("2 - TRUE")
-	nparser := parser.NewParser(lexer)
-	program := nparser.ParseProgram()
-	eval := evaluator.Eval(program.Statements[0])
-	fmt.Println(eval)
+	//^Manual Test golang scanner only
 
-	allTime := time.Now()
-	fmt.Printf("Total took: %s\n", allTime.Sub(start))
-	// fmt.Println(program)
-	// fmt.Printf("%+v\n", program)
+	//^ Manual Test Parser
+	// start := time.Now()
+	// // lexer := parser.NewLexer("100 + 102 + 103 * 9999 + 23987 - 876876 / 3876786")
+	// lexer := parser.NewLexer("2 - TRUE")
+	// nparser := parser.NewParser(lexer)
+	// program := nparser.ParseProgram()
+	// eval := evaluator.Eval(program.Statements[0])
+	// fmt.Println(eval)
+	//^ Manula Test Parser
 
-	// actual := program.String()
 
-	// fmt.Println(actual)
-	// fmt.Println("'+'")
-	// router.Api()
-	// router.Router.Run("0.0.0.0:3000")
+	router.Api()
+	router.Router.Run("0.0.0.0:3000")
 
 }
