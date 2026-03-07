@@ -3,11 +3,15 @@ package formulas
 import (
 	"calculationengine/models"
 	"calculationengine/service/dag"
+	"calculationengine/service/evaluator"
 	"calculationengine/service/parser"
 	"calculationengine/service/utils"
 	storage "calculationengine/store"
 	"context"
-	// "errors"	
+	"errors"
+	"strconv"
+
+	// "errors"
 	"fmt"
 	"slices"
 	// "gorm.io/gorm"
@@ -38,8 +42,7 @@ func CreateFormula(ctx context.Context, request models.CreateFormulaRequest) (*s
 		return &storage.ApiResponse{Message: fmt.Sprintf("%s Attributes does not exist", attributesNotExisting), Data: []any{}}, nil
 		//!Handle error
 	}
-	
-	attributeDependencies := store.GetAllFormulaDependencies(ctx, request.CategoryID, request.TargetAttribute)
+	attributeDependencies := store.GetAllFormulaDependencies(ctx, []int{request.CategoryID})
 	
 	//^Remove duplicates from this array
 	var attributeIdsInFormula []int
@@ -60,7 +63,7 @@ func CreateFormula(ctx context.Context, request models.CreateFormulaRequest) (*s
 		if(isDependencyExisting){
 			continue
 		}
-		attributeDependencies = append(attributeDependencies, models.AttributeDependencies{TargetAttributeID: request.TargetAttribute, DependentAttributeID: dependentAttributeId})
+		attributeDependencies = append(attributeDependencies, models.AttributeDependenciesResult{TargetAttributeID: request.TargetAttribute, DependentAttributeID: dependentAttributeId})
 	}
 
 	graph := generateGraphFromDependencies(attributeDependencies)
@@ -68,6 +71,11 @@ func CreateFormula(ctx context.Context, request models.CreateFormulaRequest) (*s
 	if(hasCycle){
 		fmt.Println("Has Cycle")
 		return &storage.ApiResponse{Message: "Cycle Detected", Data: []any{}}, nil
+	}
+
+	_, err2 := checkFormulaSyntaxErrors(request.Formula, attributesAssignedToCategory)
+	if err2 != nil {
+		return &storage.ApiResponse{Message: err2.Error(), Data: []any{}}, nil
 	}
 
 	err1 := store.SaveFormula(ctx, models.SaveFormulaParams{
@@ -78,12 +86,149 @@ func CreateFormula(ctx context.Context, request models.CreateFormulaRequest) (*s
 		TargetAttributeID:request.TargetAttribute,
 	})
 	if(err1!=nil){
-		return &storage.ApiResponse{Message: "SOmething Went wrong", Data: []any{}}, nil
+		return &storage.ApiResponse{Message: "Something Went wrong", Data: []any{}}, nil
 	}
 	return &storage.ApiResponse{Message: "success", Data: []any{}}, nil
 }
 
-func generateGraphFromDependencies(attributeDependencies []models.AttributeDependencies) *dag.GraphList{
+func checkFormulaSyntaxErrors(formula string, attributes []storage.Attribute) (bool , error) {
+	//Generating Default Env
+	env := evaluator.NewEnvironment()
+	for _, attribute := range attributes {
+		switch attribute.DataType{
+		case "integer":
+			object := &evaluator.Integer{Value:1}
+			env.Set(attribute.Name, object)
+		case "boolean":
+			object := evaluator.NativeBoolToBooleanObject(true)
+			env.Set(attribute.Name, object)
+		case "string":
+			object := &evaluator.String{Value:"Hello"}
+			env.Set(attribute.Name, object)
+		case "float":
+			object := &evaluator.Float{Value:1.5}
+			env.Set(attribute.Name, object)
+		}
+	}
+	result := parseAndEvaluateFormula(formula, env)
+	if result.Type()==evaluator.ERROR_OBJ{
+		return false, errors.New(result.Inspect())
+	}
+	return true, nil
+}
+
+func EvaluateFormula(ctx context.Context, request models.EvaluateFormulaRequest) (*storage.ApiResponse, error) {
+	var store = storage.NewStore(storage.DB)
+	productDatas, err := store.GetProductData(ctx, request.ProductID)
+	if err != nil {
+		return &storage.ApiResponse{Message: "Something Went wrong", Data: []any{}}, nil
+	}
+	categoryIds := utils.Map(productDatas, func(productData models.ProductDatasResult) int {
+		return productData.CategoryID
+	})
+	categoryIds = utils.RemoveArrayDuplicates(categoryIds)
+	formulaDependencies := store.GetAllFormulaDependencies(ctx, categoryIds)
+	attributesIdMap, err := store.GetAttributesIdDataMap(ctx, categoryIds)
+	if err != nil {
+
+	}
+	formulas := store.GetFormulas(ctx, categoryIds)
+	topologicalSortOrder, err := store.GetTopologicalSorting(ctx, categoryIds)
+	if err != nil{
+		return &storage.ApiResponse{Message: "Something Went wrong", Data: []any{}}, nil
+	}
+
+	for _, productId := range request.ProductID {
+		productData := utils.Filter(productDatas, func(productData models.ProductDatasResult) bool {
+			return productData.ID == productId
+		})
+		if(len(productData) == 0){
+			continue
+		}
+		productCategoryId := productData[0].CategoryID
+		env := generateEnvironmentFromProductData(productData)
+
+		categoryTopologicalSortOrder := utils.Filter(topologicalSortOrder, func (sortOrder models.TopologicalSortResult) bool {
+			return sortOrder.CategoryID == productCategoryId
+		})
+		for _, attribute := range categoryTopologicalSortOrder {
+			attributeId := attribute.AttributeID
+			formula := utils.Filter(formulas, func (x models.FormulasResult) bool {
+				return x.CategoryID == productCategoryId && x.TargetAttributeID == attributeId
+			})
+			if(len(formula)==0){
+				continue
+			}
+			currentFormulaDependencies := utils.Filter(formulaDependencies, func (x models.AttributeDependenciesResult) bool {
+				return x.CategoryID == productCategoryId && x.TargetAttributeID==formula[0].TargetAttributeID
+			})
+			nilValuePresent := false
+			for _, currentFormulaDependency := range currentFormulaDependencies{
+				dependentAttributeName := attributesIdMap[currentFormulaDependency.DependentAttributeID].Name
+				if _, ok := env.Get(dependentAttributeName); !ok {
+					nilValuePresent = true
+					break
+				}
+			}
+			if(nilValuePresent){
+				continue
+			}
+			obj := parseAndEvaluateFormula(formula[0].Expression, env)
+			
+			targetAttributeName := attributesIdMap[attributeId].Name
+			env.Set(targetAttributeName, obj)
+		}
+
+	}
+
+	return &storage.ApiResponse{Message: "success", Data: []any{}}, nil
+}
+
+func parseAndEvaluateFormula(formula string, env *evaluator.Environment) evaluator.Object{
+	lexer := parser.NewLexer(formula)
+	nparser := parser.NewParser(lexer)
+	program := nparser.ParseProgram()
+	eval := evaluator.Eval(program.Statements[0], env)
+	return eval
+}
+
+func generateEnvironmentFromProductData(productData []models.ProductDatasResult) *evaluator.Environment{
+	env := evaluator.NewEnvironment()
+	for _, data := range productData{
+		if(data.Data==""){
+			continue
+		}
+		switch data.DataType{
+		case "integer":
+			value, err := strconv.Atoi(data.Data)
+			if err != nil {
+				continue
+			}
+			object := &evaluator.Integer{Value:int64(value)}
+			env.Set(data.AttributeName, object)
+		case "boolean":
+			value, err := utils.StringToBoolean(data.Data)
+			if err!=nil{
+				continue
+			}
+			object := evaluator.NativeBoolToBooleanObject(value)
+			env.Set(data.AttributeName, object)
+		case "string":
+			object := &evaluator.String{Value:data.Data}
+			env.Set(data.AttributeName, object)
+		case "float":
+			value, err := strconv.ParseFloat(data.Data, 64)
+			if err != nil {
+				continue
+			}
+			object := &evaluator.Float{Value:float64(value)}
+			env.Set(data.AttributeName, object)
+		}
+	}
+	return env
+}
+
+func generateGraphFromDependencies(attributeDependencies []models.AttributeDependenciesResult) *dag.GraphList{
 	graph := dag.NewGraphList()
 	for _, value := range attributeDependencies {
 		graph.AddEdge(value.DependentAttributeID, value.TargetAttributeID)

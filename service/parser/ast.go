@@ -82,6 +82,37 @@ func (il *IntegerLiteral) TokenLiteral() string {
 	return il.Token.TokenValue
 }
 
+type FloatLiteral struct {
+	Token Token
+	Value float64
+}
+
+func (il *FloatLiteral) expressionNode() {}
+
+func (il *FloatLiteral) String() string {
+	return il.Token.TokenValue
+}
+
+func (il *FloatLiteral) TokenLiteral() string {
+	return il.Token.TokenValue
+}
+
+type StringLiteral struct {
+	Token Token
+	Value string
+}
+
+func (sl *StringLiteral) expressionNode() {}
+
+func (sl *StringLiteral) String() string {
+	return sl.Token.TokenValue
+}
+
+func (sl *StringLiteral) TokenLiteral() string {
+	return sl.Token.TokenValue
+}
+
+
 type Boolean struct {
 	Token Token
 	Value bool

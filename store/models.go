@@ -58,8 +58,12 @@ type CategoryAttributeAssignment struct {
 }
 
 type Product struct{
-	ID uint `grom:"primaryKey; autoIncrement" json:",omitempty"`
-	Data JSONB `gorm:"type:jsonb; default:'{}'"`
+	ID string `grom:"primaryKey" json:",omitempty"`
+	CategoryID uint `gorm:"primaryKey"`
+	Category CategoryAttributeAssignment `gorm:"foreignKey:CategoryID; references:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	AttributeID uint `gorm:"primaryKey"`
+	Attribute CategoryAttributeAssignment `gorm:"foreignKey:AttributeID; references:ID; constraint:OnUpdate:CASCADE, OnDelete:CASCADE"`
+	Data string
 	CreatedAt time.Time `gorm:"autoCreateTime" json:",omitempty"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:",omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:",omitempty"`
@@ -73,6 +77,6 @@ type ApiResponse struct{
 
 func AutoMigrate(){
 	// DB.AutoMigrate(&Attribute{}, &Category{}, &Formulas{}, &CategoryAttributeAssignment{}, &Product{}, &FormulaDependencies{})
-	DB.AutoMigrate(&CategoryAttributeAssignment{})
+	DB.AutoMigrate(&Product{})
 }
 

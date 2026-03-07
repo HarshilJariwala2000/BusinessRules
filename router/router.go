@@ -4,7 +4,9 @@ import (
 	// "calculationengine/service"
 	"calculationengine/models"
 	"calculationengine/service/attribute"
+	"calculationengine/service/category"
 	"calculationengine/service/formulas"
+	"calculationengine/service/product"
 	"fmt"
 
 	// storage "calculationengine/store"
@@ -56,6 +58,114 @@ func Api(){
 		}
 		ctx := c.Request.Context()
 		result, err := formulas.CreateFormula(ctx, request)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/category/get-all", func(c *gin.Context){
+		ctx := c.Request.Context()
+		result, err := category.GetAllCategories(ctx)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/category/get-all", func(c *gin.Context){
+		ctx := c.Request.Context()
+		result, err := category.GetAllCategories(ctx)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/attributes/get-all", func(c *gin.Context){
+		ctx := c.Request.Context()
+		result, err := attribute.GetAllAttributes(ctx)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/assignment/get-category-wise-common-attributes", func(c *gin.Context){
+		request := parseRequest[models.GetCategoryWiseCommonAttributesRequest](c)
+		validate := validator.New()
+		validationErr := validate.Struct(request)
+		if validationErr != nil {
+			c.JSON(400, gin.H{"error": validationErr.Error()})
+			return
+		}
+		ctx := c.Request.Context()
+		result, err := attribute.GetCategoryWiseCommonAttributes(ctx, request)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/assignment/change", func(c *gin.Context){
+		request := parseRequest[models.ChangeCategoryAttributeAssignmentRequest](c)
+		validate := validator.New()
+		validationErr := validate.Struct(request)
+		if validationErr != nil {
+			c.JSON(400, gin.H{"error": validationErr.Error()})
+			return
+		}
+		ctx := c.Request.Context()
+		result, err := attribute.ChangeCategoryAttributeAssignment(ctx, request)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/product/upsert", func(c *gin.Context){
+		request := parseRequest[models.CreateProductRequest](c)
+		validate := validator.New()
+		validationErr := validate.Struct(request)
+		if validationErr != nil {
+			c.JSON(400, gin.H{"error": validationErr.Error()})
+			return
+		}
+		ctx := c.Request.Context()
+		result, err := product.UpsertProduct(ctx, request)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/product/get-all", func(c *gin.Context){
+		ctx := c.Request.Context()
+		result, err := product.GetProductList(ctx)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/product/get-by-id", func(c *gin.Context){
+		request := parseRequest[models.GetProductDataRequest](c)
+		validate := validator.New()
+		validationErr := validate.Struct(request)
+		if validationErr != nil {
+			c.JSON(400, gin.H{"error": validationErr.Error()})
+			return
+		}
+		ctx := c.Request.Context()
+		result, err := product.GetProductList(ctx)
 		if err !=nil{
 			c.JSON(500, gin.H{"error": err.Error()})
 			return

@@ -63,6 +63,8 @@ func NewParser(l *Lexer) *Parser{
 	p.registerPrefixFunction(MINUS, p.parsePrefixExpression)
 	p.registerPrefixFunction(IF, p.parseIfExpression)
 	p.registerPrefixFunction(BOOL, p.parseBoolean)
+	p.registerPrefixFunction(STRING, p.parseStringLiteral)
+	p.registerPrefixFunction(FLOAT, p.parseFloatLiteral)
 
 	p.registerInfixFunction(EQ, p.parseInfixExpression)
 	p.registerInfixFunction(NOT_EQ, p.parseInfixExpression)
@@ -95,13 +97,30 @@ func (p *Parser) parseIntegerLiteral() Expression {
 	return lit
 }
 
+func (p *Parser) parseFloatLiteral() Expression {
+	lit := &FloatLiteral{Token: p.currentToken}
+	value, err := strconv.ParseFloat(p.currentToken.TokenValue, 64)
+	if err!=nil {
+		msg := fmt.Sprintf("Cannot parse %q as Float", p.currentToken.TokenValue)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	lit.Value = value
+	return lit
+}
+
+func (p *Parser) parseStringLiteral() Expression {
+	return &StringLiteral{Token: p.currentToken, Value: p.currentToken.TokenValue}
+}
+
 func (p *Parser) parseBoolean() Expression {
 	lit := &Boolean{Token: p.currentToken}
-	if(p.currentToken.TokenValue=="TRUE"){
+	switch p.currentToken.TokenValue {
+	case "TRUE":
 		lit.Value = true
-	}else if (p.currentToken.TokenValue=="FALSE"){
+	case "FALSE":
 		lit.Value = false
-	}else {
+	default:
 		msg := fmt.Sprintf("Cannot parse %q as Boolean", p.currentToken.TokenValue)
 		p.errors = append(p.errors, msg)
 		return nil

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-
+	SUCCESS = "success"
 )
 
 type Config struct{

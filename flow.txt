@@ -1,3 +1,4 @@
+//Create Formula
 User Enters Target Attribute and Formula
 Validations:
 1.) All the identifiers in the formula should be the attribute that is made in our system
@@ -7,9 +8,17 @@ Validations:
 Fetch Dependent and Traget From FormulaDependency Table (Except the traget Attribute in Request).
 Merge with Fromula in Request
 Create a Graph in Memory
+Find the topological order
 Detect Cycles
 
 Only if all these validations pass, we will save the formula in db
+
+//Evaluate Formula
+1.) Create an environment map in Memory with values fetched from database
+2.) Traverse attributes in Topological sort order
+3.) If that attribute has formula, check if all the dependent attributes are not nil
+4.) If all the attributes are not nil, evaluate the attribute, then update the value of that attribute in environment
+
 
 
 
