@@ -117,11 +117,12 @@ func checkFormulaSyntaxErrors(formula string, attributes []storage.Attribute) (b
 	return true, nil
 }
 
-func EvaluateFormula(ctx context.Context, request models.EvaluateFormulaRequest) (*storage.ApiResponse, error) {
+func EvaluateFormula(ctx context.Context, request models.EvaluateFormulaRequest) ([]models.CreateProductParams, error) {
+	response := []models.CreateProductParams{}
 	var store = storage.NewStore(storage.DB)
 	productDatas, err := store.GetProductData(ctx, request.ProductID)
 	if err != nil {
-		return &storage.ApiResponse{Message: "Something Went wrong", Data: []any{}}, nil
+		return response, nil
 	}
 	categoryIds := utils.Map(productDatas, func(productData models.ProductDatasResult) int {
 		return productData.CategoryID
@@ -135,7 +136,7 @@ func EvaluateFormula(ctx context.Context, request models.EvaluateFormulaRequest)
 	formulas := store.GetFormulas(ctx, categoryIds)
 	topologicalSortOrder, err := store.GetTopologicalSorting(ctx, categoryIds)
 	if err != nil{
-		return &storage.ApiResponse{Message: "Something Went wrong", Data: []any{}}, nil
+		return response, nil
 	}
 
 	for _, productId := range request.ProductID {
@@ -174,14 +175,21 @@ func EvaluateFormula(ctx context.Context, request models.EvaluateFormulaRequest)
 				continue
 			}
 			obj := parseAndEvaluateFormula(formula[0].Expression, env)
-			
+			if obj.Type() == evaluator.ERROR_OBJ {
+				continue
+			}
+			response = append(response, models.CreateProductParams{
+				ID:productId,
+				AttributeID: uint(attributeId),
+				Data:obj.Inspect(),
+				CategoryID: uint(productCategoryId),
+			})
 			targetAttributeName := attributesIdMap[attributeId].Name
 			env.Set(targetAttributeName, obj)
 		}
 
 	}
-
-	return &storage.ApiResponse{Message: "success", Data: []any{}}, nil
+	return response, nil
 }
 
 func parseAndEvaluateFormula(formula string, env *evaluator.Environment) evaluator.Object{

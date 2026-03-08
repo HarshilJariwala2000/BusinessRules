@@ -31,10 +31,10 @@ func UpsertProduct(ctx context.Context, request models.CreateProductRequest)(*st
 	defaultAttributePresent := false
 	for _, data := range request.ProductData {
 		value := strings.TrimSpace(data.Value)
-		if value == "" {
-			continue
-		} 
-		if data.AttributeID==0 {
+		// if value == "" {
+		// 	continue
+		// } 
+		if data.AttributeID == 0 && value != "" {
 			defaultAttributePresent = true
 		}
 		attribute, ok := attributes[data.AttributeID]; 
@@ -61,7 +61,8 @@ func UpsertProduct(ctx context.Context, request models.CreateProductRequest)(*st
 	evaluateFormulaRequest := models.EvaluateFormulaRequest{
 		ProductID: []string{id},
 	}
-	formulas.EvaluateFormula(ctx, evaluateFormulaRequest)
+	evaluatedProductData, _ := formulas.EvaluateFormula(ctx, evaluateFormulaRequest)
+	s.UpsertProduct(ctx, evaluatedProductData)
 	return &storage.ApiResponse{Message: "success", Data: []any{}}, nil
 }
 
@@ -93,6 +94,9 @@ func GetSingleProductData(ctx context.Context, request models.GetProductDataRequ
 }
 
 func validateData(value string, attribute storage.Attribute) error {
+	if value == ""{
+		return nil
+	}
 	switch attribute.DataType{
 	case "integer":
 		_, err := strconv.Atoi(value)
