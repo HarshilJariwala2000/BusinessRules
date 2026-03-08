@@ -91,6 +91,19 @@ func CreateFormula(ctx context.Context, request models.CreateFormulaRequest) (*s
 	return &storage.ApiResponse{Message: "success", Data: []any{}}, nil
 }
 
+func GetFormulasList(ctx context.Context) (*models.GetAllFormulasResponse, error) {
+	response := models.GetAllFormulasResponse{}
+	s := storage.NewStore(storage.DB)
+	data, err := s.GetFormulasList(ctx)
+	if err != nil {
+		response.Message = "Something went wrong"
+		return &response, nil
+	}
+	response.Message = "success"
+	response.Data = data
+	return &response, nil
+}
+
 func checkFormulaSyntaxErrors(formula string, attributes []storage.Attribute) (bool , error) {
 	//Generating Default Env
 	env := evaluator.NewEnvironment()
@@ -148,7 +161,6 @@ func EvaluateFormula(ctx context.Context, request models.EvaluateFormulaRequest)
 		}
 		productCategoryId := productData[0].CategoryID
 		env := generateEnvironmentFromProductData(productData)
-
 		categoryTopologicalSortOrder := utils.Filter(topologicalSortOrder, func (sortOrder models.TopologicalSortResult) bool {
 			return sortOrder.CategoryID == productCategoryId
 		})
@@ -222,7 +234,8 @@ func generateEnvironmentFromProductData(productData []models.ProductDatasResult)
 			object := evaluator.NativeBoolToBooleanObject(value)
 			env.Set(data.AttributeName, object)
 		case "string":
-			object := &evaluator.String{Value:data.Data}
+			object := &evaluator.String{Value:string(data.Data)}
+			fmt.Println("Object: ", object)
 			env.Set(data.AttributeName, object)
 		case "float":
 			value, err := strconv.ParseFloat(data.Data, 64)

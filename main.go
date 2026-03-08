@@ -6,6 +6,7 @@ import (
 	// "calculationengine/service/evaluator"
 	// "calculationengine/service/parser"
 	"calculationengine/store"
+	// "github.com/gin-contrib/cors"
 	// "encoding/json"
 	// "fmt"
 	// "time"
@@ -16,7 +17,7 @@ import (
 func main(){
 	constants.Load()
 	storage.Connect()
-	storage.AutoMigrate()
+	// storage.AutoMigrate()
 
 	//^Manual Test golang scanner only
 	// var s scanner.Scanner

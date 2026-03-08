@@ -10,25 +10,33 @@ const (
 )
 
 type AttributeDependenciesResult struct {
-	TargetAttributeID int `json:"target_attribute_id"`
-	DependentAttributeID int `json:"dependent_attribute_id"`
-	CategoryID int `json:"category_id"`
+	TargetAttributeID int `json:"targetAttributeId"`
+	DependentAttributeID int `json:"dependentAttributeId"`
+	CategoryID int `json:"categoryId"`
+}
+
+type FormulasListResult struct {
+	CategoryID int `json:"categoryId"`
+	TargetAttributeID int `json:"targetAttributeId"`
+	CategoryName string `json:"categoryName"`
+	TargetAttributeName string `json:"targetAttributeName"`
+	Formula string `json:"formula"`
 }
 
 type ProductDatasResult struct {
-	CategoryID int `json:"category_id"`
+	CategoryID int `json:"categoryId"`
 	ID string `json:"id"`
-	AttributeID int `json:"attribute_id"`
+	AttributeID int `json:"attributeId"`
 	Data string `json:"data"`
-	DataType DataType `json:"data_type"`
-	AttributeName string `json:"attribute_name"`
+	DataType DataType `json:"dataType"`
+	AttributeName string `json:"attributeName"`
 }
 
 type ProductListResult struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
-	CategoryID int `json:"category_id"`
-	CategoryPath string `json:"category_path"`
+	CategoryID int `json:"categoryId"`
+	CategoryPath string `json:"categoryPath"`
 }
 
 type GetCategoriesResult struct {
@@ -50,8 +58,8 @@ type GetAttributesResult struct {
 }
 
 type FormulasResult struct {
-	CategoryID int `json:"category_id"`
-	TargetAttributeID int `json:"target_attribute_id"`
+	CategoryID int `json:"categoryId"`
+	TargetAttributeID int `json:"targetAttributeId"`
 	Expression string `json:"expression"`
 }
 
@@ -71,9 +79,9 @@ type CreateProductParams struct {
 }
 
 type TopologicalSortResult struct {
-	CategoryID int `json:"category_id"`
-	AttributeID int `json:"attribute_id"`
-	TopologicalSortOrder int `json:"topological_sort_order"`
+	CategoryID int `json:"categoryId"`
+	AttributeID int `json:"attributeId"`
+	TopologicalSortOrder int `json:"topologicalSortOrder"`
 }
 
 

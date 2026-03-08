@@ -22,19 +22,22 @@ func NewStore(db *gorm.DB) *Store{
 }
 
 func (s *Store) CreateCategory(ctx context.Context, name string) error{
+	fmt.Println("Hello2")
 	err := s.DB.Transaction(func(tx *gorm.DB) error {
 		category := Category{
 			Path:name,
 		}
-		err := tx.Save(category).Error
+		fmt.Println("Hello3")
+		err := tx.Save(&category).Error
+		fmt.Println("err: ", err)
 		if err!=nil{
 			return err
 		}
-		err = tx.Create(&CategoryAttributeAssignment{
+		err2 := tx.Create(&CategoryAttributeAssignment{
 			CategoryID:category.ID,
 			AttributeID: 0,
 		}).Error
-		return err
+		return err2
 	})
 	return err
 }
@@ -42,7 +45,7 @@ func (s *Store) CreateCategory(ctx context.Context, name string) error{
 func (s *Store) GetAllCategories(ctx context.Context) ([]models.GetCategoriesResult, error) {
 	var categories []models.GetCategoriesResult
 	err := s.DB.Model(&Category{}).
-		Select("id, name").
+		Select("id, path as name").
 		Order("updated_at DESC").
 		Scan(&categories).Error
 	return categories, err
@@ -50,8 +53,8 @@ func (s *Store) GetAllCategories(ctx context.Context) ([]models.GetCategoriesRes
 
 func (s *Store) GetAllAttributes(ctx context.Context) ([]models.GetAttributesResult, error) {
 	var attributes []models.GetAttributesResult
-	err := s.DB.Model(&Category{}).
-		Select("id, name, data_type").
+	err := s.DB.Model(&Attribute{}).
+		Select(`id, name, data_type as "dataType"`).
 		Order("updated_at DESC").
 		Scan(&attributes).Error
 	return attributes, err
@@ -63,7 +66,7 @@ func (s *Store) GetCategoryWiseCommonAttributes(ctx context.Context, params mode
 		SELECT 
 			a.id,
 			a.name,
-			a.data_type,
+			a.data_type as "dataType",
 			CASE 
 				WHEN COUNT(DISTINCT caa.category_id) = ? THEN TRUE -- Replace 3 with the length of your array
 				ELSE FALSE 
@@ -130,7 +133,9 @@ func (s *Store) UpsertProduct(ctx context.Context, datas []models.CreateProductP
 		DO UPDATE SET
 			data = EXCLUDED.data
 	`, queryStr)
-	err := s.DB.Raw(query).Error
+	fmt.Println(query)
+	err := s.DB.Exec(query).Error
+	fmt.Println(err)
 	if err != nil {
 		return err
 	}
@@ -140,7 +145,7 @@ func (s *Store) UpsertProduct(ctx context.Context, datas []models.CreateProductP
 func (s *Store) GetAttributesByNames(ctx context.Context, categoryId int, names []string) []Attribute {
 	var attributes []Attribute
 	s.DB.Model(&CategoryAttributeAssignment{}).
-		Select("attributes.*").
+		Select(`attributes.id as "id", attributes.name as "name", attributes.data_type as "dataType"`).
 		Joins("JOIN attributes ON attributes.id = category_attribute_assignments.attribute_id AND category_attribute_assignments.category_id = ? AND attributes.name in ?", categoryId, names).
 		Scan(&attributes)
 	return attributes
@@ -149,7 +154,7 @@ func (s *Store) GetAttributesByNames(ctx context.Context, categoryId int, names 
 func (s *Store) GetAllFormulaDependencies(ctx context.Context, categoryIds []int) []models.AttributeDependenciesResult {
 	var formulaDependencies []models.AttributeDependenciesResult
 	s.DB.Model(&FormulaDependencies{}).
-		Select("category_id, target_attribute_id, dependent_attribute_id").
+		Select(`category_id as "categoryId", target_attribute_id as "targetAttributeId", dependent_attribute_id as "dependentAttributeId"`).
 		Where("category_id IN ?", categoryIds).
 		Scan(&formulaDependencies)
 	return formulaDependencies
@@ -161,7 +166,7 @@ func (s *Store) GetAttributesIdDataMap(ctx context.Context, categoryIds []int) (
 		select 
 			id, 
 			name, 
-			data_type 
+			data_type as "dataType" 
 		from 
 			attributes 
 		where 
@@ -187,7 +192,7 @@ func (s *Store) GetAttributesIdDataMap(ctx context.Context, categoryIds []int) (
 func (s *Store) GetAllFormulas(ctx context.Context, categoryIds []int) ([]models.FormulasResult, error) {
 	var formulas []models.FormulasResult
 	err := s.DB.Model(&Formulas{}).
-		Select("category_id, target_attribute_id, expression").
+		Select(`category_id as "categoryId", target_attribute_id as "targetAttributeId", expression`).
 		Where("category_id IN ?", categoryIds).
 		Scan(&formulas).Error
 	return formulas, err
@@ -233,7 +238,7 @@ func (s *Store) SaveFormula(ctx context.Context, params models.SaveFormulaParams
 func (s *Store) GetFormulas(ctx context.Context, categoryIds []int) []models.FormulasResult {
 	var formulas []models.FormulasResult
 	s.DB.Model(&Formulas{}).
-		Select("category_id, target_attribute_id, expression").
+		Select(`category_id as "categoryId", target_attribute_id as "targetAttributeId", expression`).
 		Where("category_id IN ?", categoryIds).
 		Scan(&formulas)
 	return formulas
@@ -242,7 +247,7 @@ func (s *Store) GetFormulas(ctx context.Context, categoryIds []int) []models.For
 func (s *Store) GetTopologicalSorting(ctx context.Context, categoryIds []int) ([]models.TopologicalSortResult, error) {
 	var topologicalSorting []models.TopologicalSortResult
 	err := s.DB.Model(&CategoryAttributeAssignment{}).
-		Select("category_id, attribute_id, topological_sort_order").
+		Select(`category_id as "categoryId", attribute_id as "attributeId", topological_sort_order as "topologicalSortOrder"`).
 		Where("category_id IN ?", categoryIds).
 		Order("category_id, topological_sort_order").
 		Scan(&topologicalSorting).Error
@@ -270,9 +275,10 @@ func (s *Store) GetProductData(ctx context.Context, productIds []string) ([]mode
 		SELECT 
 			product_data.id, 
 			product_data.data, 
-			attributes.id AS attribute_id, 
-			attributes.name AS attribute_name, 
-			attributes.data_type 
+			attributes.id AS "attributeId", 
+			attributes.name AS "attributeName", 
+			attributes.data_type AS "dataType",
+			product_data.category_id AS "categoryId"
 		FROM 
 			product_data 
 			JOIN attributes ON product_data.attribute_id = attributes.id
@@ -300,8 +306,8 @@ func (s *Store) GetProductList(ctx context.Context) ([]models.ProductListResult,
 		SELECT 
 			product_data.id, 
 			product_data.data as name, 
-			categories.path as category_path,
-			categories.id as category_id
+			categories.path as "categoryPath",
+			categories.id as "categoryId"
 		FROM 
 			product_data 
 			JOIN categories ON product_data.category_id = categories.id
@@ -310,6 +316,26 @@ func (s *Store) GetProductList(ctx context.Context) ([]models.ProductListResult,
 		return []models.ProductListResult{}, err
 	}
 	return productList, nil
+}
 
+func (s *Store) GetFormulasList(ctx context.Context) ([]models.FormulasListResult, error) {
+	var formulaList []models.FormulasListResult
+	err := s.DB.Raw(`
+		select 
+			c.id as "categoryId", 
+			f.target_attribute_id as "targetAttributeId", 
+			c.path as "categoryName", 
+			a.name as "targetAttributeName", 
+			f.expression as "formula" 
+		from 
+			formulas f 
+			join attributes a on f.target_attribute_id = a.id 
+			join categories c on f.category_id = c.id
+
+	`).Scan(&formulaList).Error
+	if err != nil{
+		return []models.FormulasListResult{}, err
+	}
+	return formulaList, nil
 }
 

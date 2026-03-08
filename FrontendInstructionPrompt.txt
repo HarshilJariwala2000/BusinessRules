@@ -1,0 +1,186 @@
+Create following pages in React App
+1. Category page
+Features
+    a) List of categories
+    API: POST /v1/category/get-all
+    Request:{}
+    Response:{
+        message:"success",
+        data:[
+            {
+                id:1,
+                name:"Category 1"
+            }
+        ]
+    }
+    b) Add category
+    API: POST /v1/category/create
+    Request:{
+        name:"Category 1"
+    }
+    Response:{
+        message:"success",
+        data:[{}]
+    }
+No feature to delete or update category for now
+
+2. Attributes page
+Features
+    a) List of attributes
+    API: POST /v1/attributes/get-all
+    Request:{}
+    Response:{
+        message:"success",
+        data:[{
+            id:1,
+            name:"Attribute 1",
+            dataType:"string"
+        }]
+    }
+    b) Add attribute
+    API: POST /v1/attribute/create
+    Request:{
+        name:"Attribute 1",
+        dataType:"string" //Possible values ["string", "float", "integer", "boolean"]
+    }
+    Response:{
+        message:"success",
+        data:[{}]
+    }
+No feature to delete or update attribute for now
+
+3. Category Attribute Assignment page
+Features
+    a) List of category attribute assignments when categories are selected
+    API: POST /v1/assignment/get-category-wise-common-attributes
+    Request:{
+        categoryIds:[1,2,3]
+    }
+    Response:{
+        message:"success",
+        data:[{
+            {
+                id:1,
+                name:"Attribute 1",
+                dataType:"string",
+                "assigned":true
+            },
+            {
+                id:2,
+                name:"Attribute 2",
+                dataType:"string",
+                "assigned":false
+            }
+        }]
+    }
+    Here list of categories will be displayed on left and user will be able to select multiple categories.
+    In response you will get attributes list where 
+    if assigned is then that attribute is assigned to all categories
+    and if assigned is false then that attribute might be assigned some categories but not all, but we will show it as unassigned
+    User can change the assignment by checking and unchecking the attributes and next api will be called
+    b) Add/Delete category attribute assignment in one API
+    API: POST /v1/assignment/change
+    Request:{
+        assign:{
+            categoryIds:[1,2,3],
+            attributeIds:[1,2,3]
+        },
+        unassign:{
+            categoryIds:[1,2,3],
+            attributeIds:[1,2,3]
+        }
+    }
+    Response:{
+        message:"success",
+        data:[{}]
+    }
+
+4. Product page
+Features
+    a) List of products
+    API: POST /v1/product/get-all
+    Request:{}
+    Response:{
+        message:"success",
+        data:[{
+            id:1,
+            name:"Product 1",
+            category:"Category 1"
+        }]
+    }
+    b) When We click on product it should open other page where it shows product details
+    API: POST /v1/product/get-by-id
+    Request:{
+        productId:1
+    }
+    Response:{
+        message:"success",
+        data:[{
+            id:1,
+            categoryId:2,
+            attributeId:2,
+            data:"value",
+            dataType:"string"
+            attributeName:"Attribute 1"
+        }]
+    }
+    c) Create/Edit product
+    API: POST /v1/product/upsert
+    Request:{
+        categoryId:1,
+        productId:"uuid",  //If creating new product then pass ""
+        data:[{
+            "attributeId":1,
+            "value":"value1"
+        },
+        {
+            "attributeId":2,
+            "value":"value2"
+        }
+        
+        ]
+    }
+    Response:{
+        message:"success",
+        data:[{}]
+    }
+
+5. Formula page
+Features
+    a) List of formulas
+    API: POST /v1/formula/get-all
+    Request:{}
+    Response:{
+        message:"success",
+        data:[{
+            categoryId:1,
+            targetAttributeId:1,
+            categoryName:"Category 1",
+            targetAttributeName:"Attribute 1",
+            formula:"formula1"
+        }]
+    }
+    When we click on formula, it should open a new page where he can change formula
+    Now on create formula page, user selects multiple category, we will list of common attributes of selected categories
+    user can select target attribute from the list and enter the formula.
+    Formula should have Autocomplete suggestions. It is same as Excel formula language but currently it only supports
+    i) Simple arithmetic expressions which contains attribute names as call references and support static string, int, float and boolean values
+    ii) if statement (also supports nested if statements) eg targetAttribute = IF(attribute1="hello", "hi", "bye")
+    
+    b) Create/Edit formula
+    API: POST /v1/formula/create
+    Request:{
+        categoryId:1,
+        targetAttribute:1,
+        formula:"formula1"
+    }
+    Response:{
+        message:"success",
+        data:[{}]
+    }
+
+In all of these APIs, in response
+if response.message != "success" then the API has failed and we should show the error message to the user
+else it is success
+
+Make sure, when waiting for API, page should not hang, it should remain responsive to other actions

@@ -8,6 +8,7 @@ import (
 	"calculationengine/service/formulas"
 	"calculationengine/service/product"
 	"fmt"
+	"github.com/gin-contrib/cors"
 
 	// storage "calculationengine/store"
 	// "fmt"
@@ -30,6 +31,7 @@ func parseRequest[T any](c *gin.Context) T {
 
 func Api(){
 	Router = gin.Default()
+	Router.Use(cors.Default())
 
 	Router.POST("/v1/attribute/create", func(c *gin.Context){
 		request := parseRequest[models.CreateAttributeRequest](c)
@@ -65,9 +67,9 @@ func Api(){
 		c.JSON(201, result)
 	})
 
-	Router.POST("/v1/category/get-all", func(c *gin.Context){
+	Router.POST("/v1/formula/get-all", func(c *gin.Context){
 		ctx := c.Request.Context()
-		result, err := category.GetAllCategories(ctx)
+		result, err := formulas.GetFormulasList(ctx)
 		if err !=nil{
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -78,6 +80,23 @@ func Api(){
 	Router.POST("/v1/category/get-all", func(c *gin.Context){
 		ctx := c.Request.Context()
 		result, err := category.GetAllCategories(ctx)
+		if err !=nil{
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, result)
+	})
+
+	Router.POST("/v1/category/create", func(c *gin.Context){
+		request := parseRequest[models.CreateCategoryRequest](c)
+		validate := validator.New()
+		validationErr := validate.Struct(request)
+		if validationErr != nil {
+			c.JSON(400, gin.H{"error": validationErr.Error()})
+			return
+		}
+		ctx := c.Request.Context()
+		result, err := category.CreateCategory(ctx, request)
 		if err !=nil{
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -165,7 +184,7 @@ func Api(){
 			return
 		}
 		ctx := c.Request.Context()
-		result, err := product.GetProductList(ctx)
+		result, err := product.GetSingleProductData(ctx, request)
 		if err !=nil{
 			c.JSON(500, gin.H{"error": err.Error()})
 			return

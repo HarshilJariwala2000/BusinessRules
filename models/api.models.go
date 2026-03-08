@@ -28,6 +28,11 @@ type GetAllAttributesResponse struct {
 	Data []GetAttributesResult `json:"data"`
 }
 
+type GetAllFormulasResponse struct {
+	Message string `json:"message"`
+	Data []FormulasListResult `json:"data"`
+}
+
 type GetProductDataRequest struct {
 	ProductID string `json:"productId"`
 }
@@ -71,9 +76,5 @@ type CreateProductRequest struct {
 	ProductData []struct{
 		AttributeID int `json:"attributeId" validate:"required"`
 		Value string `json:"value" validate:"required"`
-	}
-}
-
-type UpdateProductRequest struct {
-
+	} `json:"data"`
 }

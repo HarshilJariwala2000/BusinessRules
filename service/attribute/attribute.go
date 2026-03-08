@@ -1,9 +1,11 @@
 package attribute
 
 import (
-	"calculationengine/store"
+	"calculationengine/constants"
 	"calculationengine/models"
+	"calculationengine/store"
 	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -20,7 +22,9 @@ func CreateAttribute(ctx context.Context, request models.CreateAttributeRequest)
 }
 
 func GetAllAttributes(ctx context.Context) (*models.GetAllAttributesResponse, error) {
-	response :=  models.GetAllAttributesResponse{}
+	response :=  models.GetAllAttributesResponse{
+		Message: constants.SUCCESS,
+	}
 	store := storage.NewStore(storage.DB)
 	result, err := store.GetAllAttributes(ctx)
 	if err!=nil{
@@ -32,7 +36,9 @@ func GetAllAttributes(ctx context.Context) (*models.GetAllAttributesResponse, er
 }
 
 func GetCategoryWiseCommonAttributes(ctx context.Context, request models.GetCategoryWiseCommonAttributesRequest) (*models.GetCategoryWiseCommonAttributesResponse, error) {
-	response :=  models.GetCategoryWiseCommonAttributesResponse{}
+	response :=  models.GetCategoryWiseCommonAttributesResponse{
+		Message: constants.SUCCESS,
+	}
 	store := storage.NewStore(storage.DB)
 	result, err := store.GetCategoryWiseCommonAttributes(ctx, request)
 	if err!=nil{

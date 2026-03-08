@@ -35,12 +35,14 @@ func (l *Lexer) readChar(){
 }
 
 func newToken(tokenType TokenType, ch string) Token {
+	if tokenType == STRING{
+		ch = strings.Trim(ch, `"`)
+	}
 	return Token{ TokenType: tokenType, TokenValue: ch }
 }
 
 func (l *Lexer) NextToken() Token {
 	var tok Token
-
 	switch l.scannerTokenType {
 		case '(':
 			tok = newToken(LPAREN, l.ch)

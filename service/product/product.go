@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func UpsertProduct(ctx context.Context, request models.CreateProductRequest)(*storage.ApiResponse, error){
+func UpsertProduct(ctx context.Context, request models.CreateProductRequest) (*storage.ApiResponse, error) {
 	s := storage.NewStore(storage.DB)
 	attributes, err := s.GetAttributesIdDataMap(ctx, []int{request.CategryID})
 	var id string
@@ -21,7 +21,7 @@ func UpsertProduct(ctx context.Context, request models.CreateProductRequest)(*st
 	if request.ProductID == "" {
 		create = true
 		id = uuid.NewString()
-	}else {
+	} else {
 		id = request.ProductID
 	}
 	if err != nil {
@@ -31,13 +31,11 @@ func UpsertProduct(ctx context.Context, request models.CreateProductRequest)(*st
 	defaultAttributePresent := false
 	for _, data := range request.ProductData {
 		value := strings.TrimSpace(data.Value)
-		// if value == "" {
-		// 	continue
-		// } 
+
 		if data.AttributeID == 0 && value != "" {
 			defaultAttributePresent = true
 		}
-		attribute, ok := attributes[data.AttributeID]; 
+		attribute, ok := attributes[data.AttributeID]
 		if !ok {
 			return &storage.ApiResponse{Message: fmt.Sprintf("Attribute %d does not exist in this category", data.AttributeID), Data: []any{}}, nil
 		}
@@ -46,22 +44,22 @@ func UpsertProduct(ctx context.Context, request models.CreateProductRequest)(*st
 			return &storage.ApiResponse{Message: validationErr.Error(), Data: []any{}}, nil
 		}
 		createProductParams = append(createProductParams, models.CreateProductParams{
-			ID:id,
-			CategoryID:uint(request.CategryID),
-			AttributeID:uint(data.AttributeID),
-			Data:data.Value,
+			ID:          id,
+			CategoryID:  uint(request.CategryID),
+			AttributeID: uint(data.AttributeID),
+			Data:        value,
 		})
 	}
 
 	if create && !defaultAttributePresent {
 		return &storage.ApiResponse{Message: "Please enter Product Name to create a new product", Data: []any{}}, nil
 	}
-
 	s.UpsertProduct(ctx, createProductParams)
 	evaluateFormulaRequest := models.EvaluateFormulaRequest{
 		ProductID: []string{id},
 	}
-	evaluatedProductData, _ := formulas.EvaluateFormula(ctx, evaluateFormulaRequest)
+	evaluatedProductData, _:= formulas.EvaluateFormula(ctx, evaluateFormulaRequest)
+	fmt.Println(evaluatedProductData)
 	s.UpsertProduct(ctx, evaluatedProductData)
 	return &storage.ApiResponse{Message: "success", Data: []any{}}, nil
 }
@@ -74,7 +72,7 @@ func GetProductList(ctx context.Context) (*models.GetProductListResponse, error)
 		response.Message = "Something went wrong"
 		return &response, nil
 	}
-	response.Message = "Success"
+	response.Message = "success"
 	response.Data = data
 	return &response, nil
 }
@@ -87,17 +85,17 @@ func GetSingleProductData(ctx context.Context, request models.GetProductDataRequ
 		response.Message = "Something went wrong"
 		return &response, nil
 	}
-	response.Message = "Success"
+	response.Message = "success"
 	response.Data = data
 	return &response, nil
 
 }
 
 func validateData(value string, attribute storage.Attribute) error {
-	if value == ""{
+	if value == "" {
 		return nil
 	}
-	switch attribute.DataType{
+	switch attribute.DataType {
 	case "integer":
 		_, err := strconv.Atoi(value)
 		if err != nil {
