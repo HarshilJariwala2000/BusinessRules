@@ -252,7 +252,7 @@ func generateEnvironmentFromProductData(productData []models.ProductDatasResult)
 func generateGraphFromDependencies(attributeDependencies []models.AttributeDependenciesResult) *dag.GraphList{
 	graph := dag.NewGraphList()
 	for _, value := range attributeDependencies {
-		graph.AddEdge(value.DependentAttributeID, value.TargetAttributeID)
+		graph.AddEdge(value.TargetAttributeID, value.DependentAttributeID)
 	}
 	return graph
 }
